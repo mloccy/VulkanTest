@@ -13,8 +13,14 @@ hunter_add_package(glfw)
 
 find_package(glfw3 CONFIG REQUIRED)
 find_package(Vulkan)
+add_compile_options("/std:c++latest")
 
-add_executable(TEST main.cpp)
+add_executable(TEST 
+                    main.cpp 
+                    app.cpp app.h 
+                    graphics/graphics_backend.h graphics/graphics_backend.cpp
+                    graphics/vulkan/vulkan_backend.h
+                    graphics/vulkan/vulkan_backend.cpp)
 
 target_link_libraries(TEST ${Vulkan_LIBRARIES} glfw)
 include_directories(${Vulkan_INCLUDE_DIRS})
