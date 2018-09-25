@@ -19,7 +19,7 @@ void App::init()
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     this->window = glfwCreateWindow(this->width, this->height, this->title, nullptr, nullptr);
-    graphicsBackend = new Graphics::Vulkan::VulkanBackend();
+    graphicsBackend = Graphics::Vulkan::VulkanBackend::Make(window);
 
     graphicsBackend->Init(title);
 }

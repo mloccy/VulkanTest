@@ -2,14 +2,19 @@
 #define VULKAN_BACKEND_H
 #include "../graphics_backend.h"
 #define GLFW_INCLUDE_VULKAN
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
+
 #include <string>
-#include <vector>namespace Graphics::Vulkan
+#include <vector>
 
 namespace Graphics::Vulkan
 {
@@ -18,11 +23,18 @@ namespace Graphics::Vulkan
     public:
         void Init(const char * title);
         void Cleanup();
-
+        static VulkanBackend * Make(GLFWwindow *window);
     private:
+        VulkanBackend() {}
+        VulkanBackend(GLFWwindow * window);
+
+        GLFWwindow * window;
         VkDebugUtilsMessengerEXT callback;
         VkInstance instance;
-        void initInstance(const char * title);
+        VkPhysicalDevice phyDevice;
+        VkDevice device;
+        VkQueue queue;
+        VkSurfaceKHR surface;
     };
 }
 #endif // !VULKAN_BACKEND_H
