@@ -13,11 +13,18 @@ hunter_add_package(glfw)
 
 find_package(glfw3 CONFIG REQUIRED)
 find_package(Vulkan)
-add_compile_options("/std:c++latest")
+
+if (WIN32)
+
+    add_compile_options("/std:c++latest")
+    add_compile_options("/ZI")
+endif()
 
 add_executable(TEST 
                     main.cpp 
                     app.cpp app.h 
+                    util/logging/logger.h
+                    util/logging/logger.cpp
                     graphics/graphics_backend.h graphics/graphics_backend.cpp
                     graphics/vulkan/vulkan_backend.h
                     graphics/vulkan/vulkan_backend.cpp)

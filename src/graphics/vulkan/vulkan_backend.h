@@ -1,6 +1,7 @@
 #ifndef VULKAN_BACKEND_H
 #define VULKAN_BACKEND_H
 #include "../graphics_backend.h"
+#include "../util/logging/logger.h"
 #define GLFW_INCLUDE_VULKAN
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -25,7 +26,10 @@ namespace Graphics::Vulkan
         void Cleanup();
         static VulkanBackend * Make(GLFWwindow *window);
     private:
-        VulkanBackend() {}
+        Util::Logging::Logger logger;
+
+        VulkanBackend();
+
         VulkanBackend(GLFWwindow * window);
 
         GLFWwindow * window;
@@ -35,6 +39,9 @@ namespace Graphics::Vulkan
         VkDevice device;
         VkQueue queue;
         VkSurfaceKHR surface;
+        VkSwapchainKHR swapChain;
+        std::vector<VkImage> swapChainImages;
+        std::vector<VkImageView> swapChainImageViews;
     };
 }
 #endif // !VULKAN_BACKEND_H
