@@ -1,18 +1,11 @@
 #ifndef VULKAN_BACKEND_H
 #define VULKAN_BACKEND_H
 #include "../graphics_backend.h"
-#include "../util/logging/logger.h"
-#define GLFW_INCLUDE_VULKAN
-#define VK_USE_PLATFORM_WIN32_KHR
-#define GLFW_EXPOSE_NATIVE_WIN32
-#define GLFW_EXPOSE_NATIVE_WGL
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
+#include "../vertexShader.h"
+#include "../fragmentShader.h"
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
+#include "../util/logging/logger.h"
+#include "../graphics_includes.h"
 
 #include <string>
 #include <vector>
@@ -42,6 +35,9 @@ namespace Graphics::Vulkan
         VkSwapchainKHR swapChain;
         std::vector<VkImage> swapChainImages;
         std::vector<VkImageView> swapChainImageViews;
+
+        VertexShader vShader;
+        FragmentShader fShader;
     };
 }
 #endif // !VULKAN_BACKEND_H
