@@ -7,8 +7,8 @@ namespace Graphics
     class FragmentShader : public Shader
     {
     public:
-        FragmentShader::FragmentShader(const std::string& code, VkDevice device);
-
+        FragmentShader::FragmentShader(const std::vector<char>& code, VkDevice device);
+        VkPipelineShaderStageCreateInfo GetShaderInfo();
         FragmentShader();
     };
 }

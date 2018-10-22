@@ -25,13 +25,11 @@ endif()
 
 
 function (compile_shader Name FileName)
-
-
         Set(OutputPath "${CMAKE_CURRENT_SOURCE_DIR}/spv/${Name}.spv")
 
         add_custom_command(
             TARGET Shaders
-            COMMENT "Compihling ${Name}..."
+            COMMENT "Compiling ${Name}..."
             COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../hooks/bin/${GLSLCompiler}"
             -V "${FileName}"
             -o ${OutputPath})
@@ -39,7 +37,8 @@ function (compile_shader Name FileName)
         add_custom_command(
             TARGET Shaders
             POST_BUILD
-            COMMAND cmake -E copy ${OutputPath} $<TARGET_FILE_DIR:TEST>)
+            COMMAND cmake -E make_directory $<TARGET_FILE_DIR:TEST>/Shaders
+            COMMAND cmake -E copy ${OutputPath} $<TARGET_FILE_DIR:TEST>/Shaders)
 
 endfunction(compile_shader)
 
@@ -50,16 +49,32 @@ file(GLOB GLSL
 )
 
 
+file(GLOB GraphicsFolder
+    "${CMAKE_CURRENT_SOURCE_DIR}/Graphics/*")
+
+file(GLOB InputFolder
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input/*")
+
+file(GLOB EventsFolder
+    "${CMAKE_CURRENT_SOURCE_DIR}/Events/*")
+
+file(GLOB UtilsFolder
+    "${CMAKE_CURRENT_SOURCE_DIR}/Utils/*")
+
+source_group(Graphics FILES ${GraphicsFolder})
+source_group(Input FILES ${InputFolder})
+source_group(Events FILES ${EventsFolder})
+source_group(Utils FILES ${UtilsFolder})
+
 source_group(Shaders ${GLSL})
 add_custom_target(Shaders ALL SOURCES ${GLSL})
 
 
 foreach(shader IN LISTS GLSL)
-    get_filename_component(name shader NAME)
+    get_filename_component(name ${shader} NAME)
+    get_filename_component(extension ${shader} EXT)
     set_source_files_properties(${shader} PROPERTIES HEADER_FILE_ONLY TRUE)
-    compile_shader(${name} ${shader})
-    
-
+    compile_shader(${name}${ext} ${shader})
 endforeach()
 
 
@@ -77,29 +92,21 @@ if (WIN32)
 endif()
 
 
-add_executable(TEST 
-                    main.cpp 
-                    app.cpp app.h 
-                    
-                    util/logging/logger.h
-                    util/logging/logger.cpp
 
-                    graphics/graphics_includes.h
-                    
-                    graphics/shader.h
-                    graphics/shader.cpp
 
-                    graphics/vertexShader.h
-                    graphics/vertexShader.cpp
+add_executable(TEST WIN32
+    main.cpp 
+    app.cpp app.h
 
-                    graphics/fragmentShader.h
-                    graphics/fragmentShader.cpp
+    ${GraphicsFolder}
+    ${InputFolder}
+    ${EventsFolder}
+    ${UtilsFolder})
 
-                    graphics/graphics_backend.h graphics/graphics_backend.cpp
-                    ${GLSL}
-                    graphics/vulkan/vulkan_backend.h
-                    graphics/vulkan/vulkan_backend.cpp)
 
+if (WIN32)
+    set_target_properties(TEST PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/Build/Debug/" )
+endif()
         
 target_link_libraries(TEST ${Vulkan_LIBRARIES} glfw)
 include_directories(${Vulkan_INCLUDE_DIRS})

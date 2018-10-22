@@ -8,7 +8,8 @@ namespace Graphics
     class VertexShader : public Shader
     {
     public:
-        VertexShader(const std::string & code, VkDevice device);
+        VertexShader(const std::vector<char> & code, VkDevice device);
+        VkPipelineShaderStageCreateInfo GetShaderInfo();
         VertexShader();
     };
 }
