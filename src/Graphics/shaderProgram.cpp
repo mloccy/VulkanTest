@@ -27,7 +27,9 @@ namespace Graphics
         std::string name;
     };
 
-    ShaderProgram::ShaderProgram(const std::string& name, std::vector <std::pair<std::string, Shader *>> shaders)
+    ShaderProgram::ShaderProgram(
+        const std::string& name,
+        std::vector <std::pair<std::string, Shader *>> shaders)
     {
         auto fCmp = CompareFunc<FragmentShader *>(name);
         auto vCmp = CompareFunc<VertexShader *>(name);

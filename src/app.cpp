@@ -1,5 +1,6 @@
 #include "app.h"
-#include "input/keyboard.h"
+#include "Input/keyboard.h"
+#include "Input/mouse.h"
 #include <filesystem>
 #include <fstream>
 #include <unordered_map>
@@ -33,9 +34,15 @@ void App::init()
 {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    this->window = glfwCreateWindow(this->width, this->height, this->title.c_str(), nullptr, nullptr);
+
+    auto monitor = glfwGetPrimaryMonitor();
+
+    auto mode = glfwGetVideoMode(monitor);
+
+    this->window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 
     Graphics::ShaderList loadedShaders;
+
     for (const auto& p : fs::directory_iterator(this->shaderDir))
     {
         std::ostringstream pathStream;
@@ -79,7 +86,6 @@ void App::init()
         }
         auto type = Graphics::Shader::StringToShaderType(lower);
 
-        //loadedShaders.push_back(std::make_pair(filenameStream.str(), buffer.data()));
         loadedShaders.push_back(std::make_tuple(filename, type, buffer));
     }
 
@@ -103,10 +109,10 @@ void App::init()
 
     const std::vector<glm::vec2> texCoords =
     {
-        { 0.0, 0.0 },
-        { 1.0, 0.0 },
         { 0.0, 1.0 },
         { 1.0, 1.0 },
+        { 0.0, 0.0 },
+        { 1.0, 0.0 },
     };
 
     const std::vector<std::vector<glm::vec2>> faces =
@@ -144,6 +150,9 @@ void App::init()
             v0.position = positions.at(faceVert.x - 1);
             v0.texcoord0 = texCoords.at(faceVert.y - 1);
 
+            //v0.texcoord0.y = 1.0 - v0.texcoord0.y;
+            //v0.texcoord0.x = 1.0 - v0.texcoord0.x;
+
             if (unique.count(v0) == 0)
             {
                 unique[v0] = vertices.size();
@@ -159,6 +168,8 @@ void App::init()
     graphicsBackend->LoadModel(vertices, indices);
 
     glfwSetKeyCallback(this->window, Input::Keyboard::HandleKey);
+    glfwSetCursorPosCallback(this->window, Input::Mouse::HandleMouseMove);
+    glfwSetMouseButtonCallback(this->window, Input::Mouse::HandleMouseClick);
 }
 
 void App::loop()

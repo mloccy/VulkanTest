@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <sstream>
 
 #include <vulkan/vulkan.h>
 
@@ -371,7 +372,7 @@ namespace Graphics::Vulkan
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+        createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 
         VkSwapchainKHR old;
         if (reuse)
@@ -678,9 +679,7 @@ namespace Graphics::Vulkan
 
     void VulkanBackend::UpdateUniformData(uint32_t index)
     {
-        static auto startTime = std::chrono::high_resolution_clock::now();
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        camera.view = glm::lookAt(position, position + direction, glm::cross(right, direction));
 
         void* data;
         CHECK_ERROR(vkMapMemory(device, uniformBuffersMemory[index], 0, sizeof(camera), 0, &data));
@@ -785,7 +784,7 @@ namespace Graphics::Vulkan
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = VK_CULL_MODE_NONE;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
         rasterizer.depthBiasConstantFactor = 0.0f;
@@ -994,13 +993,28 @@ namespace Graphics::Vulkan
         CreateShaders();
         SetupTransientOpsQueue();
 
-        eye = glm::vec3(0.0f, 2.0f, 0.0f);
+        position = glm::vec3(0.0f, 0.0f, 5.0f);
         camera = {};
         camera.model = glm::mat4(1.0f);
 
-        camera.view = glm::lookAt(eye, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        position = glm::vec3(0.2, 0.005, 4.0);
 
-        camera.proj = glm::perspective(glm::radians(30.0f), caps.currentExtent.width / (float)caps.currentExtent.height, 0.1f, 10.0f);
+        horizontalAngle = -3.119592;
+        verticalAngle = -0.000000;
+
+        direction = glm::vec3(
+            cos(this->verticalAngle) * sin(this->horizontalAngle),
+            sin(this->verticalAngle),
+            cos(this->verticalAngle) * cos(this->horizontalAngle));
+        right = glm::vec3
+        (
+            sin(this->horizontalAngle - M_PI_2),
+            0,
+            cos(this->horizontalAngle - M_PI_2)
+        );
+        camera.view = glm::lookAt(position, position + direction, glm::cross(right, direction));
+
+        camera.proj = glm::perspective(glm::radians(30.0f), caps.currentExtent.width / (float)caps.currentExtent.height, 0.001f, 100.0f);
         camera.proj[1][1] *= -1;
     }
 
@@ -1531,12 +1545,59 @@ namespace Graphics::Vulkan
 
     void VulkanBackend::HandleEvent(Events::Event * evt)
     {
+        Events::KeyEvent * keyEvent = dynamic_cast<Events::KeyEvent *> (evt);
+        Events::MouseEvent * mouseEvent = dynamic_cast<Events::MouseEvent *> (evt);
+
+        if (keyEvent == nullptr)
+        {
+            HandleMouseEvent(mouseEvent);
+        }
+        else
+        {
+            HandleKeyEvent(keyEvent);
+        }
+    }
+
+    void VulkanBackend::HandleMouseEvent(Events::MouseEvent * evt)
+    {
+        auto move = dynamic_cast<Events::MouseMoveEvent *>(evt);
+        auto press = dynamic_cast<Events::MouseButtonPressEvent *>(evt);
+        auto hold = dynamic_cast<Events::MouseButtonPressHoldEvent *>(evt);
+        auto release = dynamic_cast<Events::MouseButtonReleaseEvent *>(evt);
+
+        if (move != nullptr)
+        {
+            auto fbWidth = caps.currentExtent.width;
+            auto fbHeight = caps.currentExtent.height;
+
+            this->verticalAngle += this->mouseSpeed * 0.1f  * float(fbHeight / 2 - move->Y);
+            this->horizontalAngle += this->mouseSpeed  * 0.1f * float(fbWidth / 2 - move->X);
+
+            direction = glm::vec3(
+                cos(this->verticalAngle) * sin(this->horizontalAngle),
+                sin(this->verticalAngle),
+                cos(this->verticalAngle) * cos(this->horizontalAngle));
+
+            right = glm::vec3
+            (
+                sin(this->horizontalAngle - M_PI_2),
+                0,
+                cos(this->horizontalAngle - M_PI_2)
+            );
+
+            glm::vec3 up = glm::cross(right, direction);
+
+            glfwSetCursorPos(this->window, fbWidth / 2, fbHeight / 2);
+        }
+    }
+
+    void VulkanBackend::HandleKeyEvent(Events::KeyEvent * evt)
+    {
         Events::KeyPressEvent * press = dynamic_cast<Events::KeyPressEvent *>(evt);
         Events::KeyReleaseEvent * release = dynamic_cast<Events::KeyReleaseEvent *>(evt);;
-        Events::KeyRepeatEvent * hold = dynamic_cast<Events::KeyRepeatEvent *>(evt);;
-        float dx = 0, dz = 0;
+        Events::KeyHoldEvent * hold = dynamic_cast<Events::KeyHoldEvent *>(evt);;
 
-        Input::Key keyPressed;
+        Input::Key keyPressed = Input::Key::None;
 
         if (press != nullptr)
         {
@@ -1560,33 +1621,21 @@ namespace Graphics::Vulkan
         switch (keyPressed)
         {
         case Input::Key::W:
-            dz = 2;
+            position += direction * moveSpeed;
             break;
 
         case Input::Key::S:
-            dz = -2;
+            position -= direction * moveSpeed;
             break;
 
         case Input::Key::A:
-            dx = -2;
+            position -= right * moveSpeed;
             break;
 
         case Input::Key::D:
-            dx = 2;
+            position += right * moveSpeed;
             break;
         }
-
-        float speed = 0.05f;
-
-        glm::mat4 mat = camera.view;
-
-        //row major
-        glm::vec3 forward(mat[0][2], mat[1][2], mat[2][2]);
-        glm::vec3 strafe(mat[0][0], mat[1][0], mat[2][0]);
-
-        glm::vec3 eyeVector = (-dz * forward + dx * strafe) * speed;
-        eye += glm::vec3(dx, dz, 0) * speed;
-        camera.view = glm::lookAt(eye, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
     VulkanBackend::VulkanBackend(GLFWwindow * window,

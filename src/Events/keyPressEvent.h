@@ -3,12 +3,12 @@
 
 #include <chrono>
 
-#include "event.h"
+#include "keyEvent.h"
 #include "../input/keyboard.h"
 
 namespace Events
 {
-    class KeyPressEvent : public Event
+    class KeyPressEvent : public KeyEvent
     {
     public:
         ~KeyPressEvent()

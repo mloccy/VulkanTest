@@ -12,6 +12,7 @@ namespace Input
         D,
         None
     };
+
     class Keyboard
     {
     public:

@@ -1,7 +1,7 @@
 #include "keyboard.h"
 #include "../events/keyPressEvent.h"
 #include "../events/keyReleaseEvent.h"
-#include "../events/keyRepeatEvent.h"
+#include "../events/keyHoldEvent.h"
 
 #include "../events/eventsPump.h"
 namespace Input
@@ -44,7 +44,7 @@ namespace Input
             break;
 
         case GLFW_REPEAT:
-            evt = new Events::KeyRepeatEvent(pressedKey);
+            evt = new Events::KeyHoldEvent(pressedKey);
             break;
 
         default:

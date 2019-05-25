@@ -23,7 +23,8 @@ layout(binding = 0) uniform ProjectionData
 
 
 
-out gl_PerVertex{
+out gl_PerVertex
+{
     vec4 gl_Position;
 };
 

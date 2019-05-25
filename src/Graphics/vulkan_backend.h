@@ -8,12 +8,23 @@
 #include "graphics_includes.h"
 #include "vertex.h"
 #include "projectionData.h"
+#include "../Events/mouseEvent.h"
+#include "../Events/mouseMoveEvent.h"
+#include "../Events/mouseButtonPressEvent.h"
+#include "../Events/mouseButtonPressHoldEvent.h"
+#include "../Events/mouseButtonReleaseEvent.h"
+
+#include "../Events//keyEvent.h"
 #include "../events/keyPressEvent.h"
 #include "../events/keyReleaseEvent.h"
-#include "../events/keyRepeatEvent.h"
+#include "../events/keyHoldEvent.h"
+
 #include "image.h"
 #include <string>
 #include <vector>
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 namespace Graphics::Vulkan
 {
@@ -30,11 +41,16 @@ namespace Graphics::Vulkan
 
         static VulkanBackend * Make(GLFWwindow *window, ShaderList shaderList);
     private:
+
         Util::Logging::Logger logger;
 
         VulkanBackend();
 
         VulkanBackend(GLFWwindow * window, ShaderList loadedShaders);
+
+        void HandleMouseEvent(Events::MouseEvent * evt);
+        void HandleKeyEvent(Events::KeyEvent * evt);
+
         void LoadTexture(const std::string & path);
         void CreateSurface(GLFWwindow  *window, VkInstance instance);
         void CreateInstance(const std::string& title);
@@ -141,12 +157,20 @@ namespace Graphics::Vulkan
         std::vector<VkBuffer> uniformBuffers;
         std::vector<VkDeviceMemory> uniformBuffersMemory;
 
-        glm::vec3 eye;
         ProjectionData camera;
+        glm::vec3 position;
+        glm::vec3 direction;
+        glm::vec3 right;
 
         VkImage depthImage;
         VkDeviceMemory depthImageMemory;
         VkImageView depthImageView;
+
+        float verticalAngle = 0.0f;
+        float horizontalAngle = 0.0f;
+        float initialFOV = 45.0f;
+        float moveSpeed = 0.25f;
+        float mouseSpeed = 0.005f;
 
         size_t currentFrame = 0;
         const uint32_t MAX_FRAMES_IN_FLIGHT = 2;

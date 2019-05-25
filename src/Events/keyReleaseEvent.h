@@ -1,11 +1,11 @@
 #ifndef KEYRELEASEEVENT_H
-#define KEYRELEASEEVNT_H
+#define KEYRELEASEEVENT_H
 
-#include "event.h"
-#include "../input/keyboard.h"
+#include "keyEvent.h"
+#include "../Input/keyboard.h"
 namespace Events
 {
-    class KeyReleaseEvent : public Event
+    class KeyReleaseEvent : public KeyEvent
     {
     public:
         KeyReleaseEvent(Input::Key key)

@@ -1,19 +1,20 @@
-#ifndef KEYRELEASEEVENT_H
-#define KEYRELEASEEVNT_H
+#ifndef KEYHOLDEVENT_H
+#define KEYHOLDEVENT_H
 
-#include "event.h"
+#include "keyEvent.h"
+
 #include "../input/keyboard.h"
 namespace Events
 {
-    class KeyRepeatEvent : public Event
+    class KeyHoldEvent : public KeyEvent
     {
     public:
-        KeyRepeatEvent(Input::Key key)
+        KeyHoldEvent(Input::Key key)
         {
             this->Key = key;
         }
 
-        ~KeyRepeatEvent() {}
+        ~KeyHoldEvent() {}
 
         Input::Key Key;
     };
